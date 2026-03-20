@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Business Type Survey</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      background: #f4f6fb;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      color: white;
+      padding: 36px 24px 36px;
+      text-align: center;
+      position: relative;
+    }
+    header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 10px; }
+    header p { font-size: 14px; opacity: 0.7; line-height: 1.6; max-width: 480px; margin: 0 auto; }
+
+    /* Language toggle */
+    .lang-toggle {
+      position: absolute; top: 18px; right: 20px;
+      display: flex; gap: 0; border-radius: 20px; overflow: hidden;
+      border: 1.5px solid rgba(255,255,255,0.3);
+    }
+    .lang-btn {
+      padding: 5px 14px; font-size: 12px; font-weight: 700;
+      background: transparent; color: rgba(255,255,255,0.55);
+      border: none; cursor: pointer; transition: all 0.15s;
+      letter-spacing: 0.5px;
+    }
+    .lang-btn.active { background: rgba(255,255,255,0.2); color: white; }
+    .lang-btn:hover:not(.active) { color: rgba(255,255,255,0.85); }
+
+    .type-badges {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+      margin-top: 20px;
+    }
+    .badge {
+      padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      border: 1.5px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.85);
+    }
+
+    .container { max-width: 680px; margin: 0 auto; padding: 32px 16px 60px; }
+
+    .question-card {
+      background: white; border-radius: 14px;
+      padding: 22px 24px; margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: box-shadow 0.2s;
+    }
+    .question-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); }
+    .question-card .q-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+    .q-num {
+      min-width: 28px; height: 28px; border-radius: 50%;
+      background: #f0f3ff; color: #4a6cf7;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; margin-top: 1px;
+    }
+    .q-text { font-size: 15px; line-height: 1.55; font-weight: 500; }
+
+    .scale-row { display: flex; gap: 6px; justify-content: space-between; }
+    .scale-labels {
+      display: flex; justify-content: space-between;
+      font-size: 10px; color: #aaa; margin-top: 6px; padding: 0 2px;
+    }
+    .scale-btn {
+      flex: 1; height: 38px;
+      border: 2px solid #e8ecf4; border-radius: 8px;
+      background: white; cursor: pointer;
+      font-size: 13px; font-weight: 600; color: #aaa;
+      transition: all 0.15s;
+    }
+    .scale-btn:hover { border-color: #4a6cf7; color: #4a6cf7; background: #f0f3ff; }
+    .scale-btn.selected { background: #4a6cf7; border-color: #4a6cf7; color: white; }
+    .question-card.unanswered { border: 2px solid #ff6b6b; }
+
+    .submit-wrap { text-align: center; margin-top: 36px; }
+    .submit-btn {
+      background: linear-gradient(135deg, #4a6cf7, #6a4cf7);
+      color: white; border: none; padding: 16px 48px;
+      border-radius: 50px; font-size: 16px; font-weight: 700;
+      cursor: pointer; letter-spacing: 0.3px;
+      box-shadow: 0 4px 20px rgba(74,108,247,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(74,108,247,0.45); }
+
+    /* RESULT */
+    #result-section { display: none; }
+    .result-hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+      color: white; border-radius: 18px;
+      padding: 36px 28px; text-align: center; margin-bottom: 24px;
+    }
+    .result-hero .tag {
+      display: inline-block; background: rgba(255,255,255,0.15);
+      border-radius: 20px; padding: 5px 16px; font-size: 12px;
+      font-weight: 600; letter-spacing: 1px; margin-bottom: 14px;
+    }
+    .result-hero h2 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+    .result-hero .subtitle { font-size: 15px; opacity: 0.75; line-height: 1.5; }
+
+    .scores-card {
+      background: white; border-radius: 14px;
+      padding: 24px; margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .scores-card h3 { font-size: 13px; font-weight: 700; color: #888; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px; }
+    .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .score-label { width: 90px; font-size: 13px; font-weight: 600; color: #333; }
+    .score-bar-bg { flex: 1; height: 10px; background: #f0f3ff; border-radius: 10px; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 10px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+    .score-val { width: 36px; text-align: right; font-size: 13px; font-weight: 700; color: #4a6cf7; }
+
+    .reason-card {
+      background: white; border-radius: 14px;
+      padding: 24px; margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .reason-card h3 { font-size: 13px; font-weight: 700; color: #888; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; }
+    .reason-card p { font-size: 14px; line-height: 1.75; color: #444; }
+
+    .ai-card { border-radius: 14px; padding: 22px 24px; margin-bottom: 16px; }
+    .ai-card h3 { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+    .ai-card p { font-size: 14px; line-height: 1.75; }
+    .ai-safe { background: #eefbf3; border-left: 4px solid #34c774; }
+    .ai-safe h3 { color: #1a9950; }
+    .ai-safe p { color: #2d6a4f; }
+    .ai-risk { background: #fff4f4; border-left: 4px solid #ff6b6b; }
+    .ai-risk h3 { color: #cc3333; }
+    .ai-risk p { color: #7a3030; }
+    .ai-mid { background: #fffbf0; border-left: 4px solid #f7c94a; }
+    .ai-mid h3 { color: #b8860b; }
+    .ai-mid p { color: #7a5c00; }
+
+    .evolution-card {
+      background: white; border-radius: 14px;
+      padding: 24px; margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border-top: 4px solid #f7a74a;
+    }
+    .evolution-card h3 { font-size: 13px; font-weight: 700; color: #c97a1a; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 18px; }
+    .practice-item {
+      display: flex; gap: 14px; align-items: flex-start;
+      margin-bottom: 16px; padding-bottom: 16px;
+      border-bottom: 1px solid #f4f4f4;
+    }
+    .practice-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+    .practice-icon {
+      min-width: 36px; height: 36px; border-radius: 10px;
+      background: #fff8ed; display: flex; align-items: center;
+      justify-content: center; font-size: 18px;
+    }
+    .practice-body { flex: 1; }
+    .practice-title { font-size: 14px; font-weight: 700; color: #222; margin-bottom: 4px; }
+    .practice-desc { font-size: 13px; color: #666; line-height: 1.65; }
+
+    .retry-btn {
+      display: block; margin: 24px auto 0; background: white;
+      border: 2px solid #4a6cf7; color: #4a6cf7;
+      padding: 12px 36px; border-radius: 50px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .retry-btn:hover { background: #f0f3ff; }
+
+    .color-visionary { background: linear-gradient(90deg, #f7c94a, #f7a74a); }
+    .color-planner    { background: linear-gradient(90deg, #4a8cf7, #4acff7); }
+    .color-connector  { background: linear-gradient(90deg, #f74a8c, #f74acf); }
+    .color-doer       { background: linear-gradient(90deg, #4af77a, #4af7c9); }
+    .color-evaluator  { background: linear-gradient(90deg, #a44af7, #f74acf); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="btn-ko" onclick="setLang('ko')">한국어</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">English</button>
+  </div>
+  <h1 id="header-title">🧭 나는 어떤 비즈니스 유형인가?</h1>
+  <p id="header-desc">AI 시대, 비즈니스 프로세스에서 당신이 가장 빛나는 역할을 찾아드립니다.</p>
+  <div class="type-badges">
+    <span class="badge">✨ Visionary</span>
+    <span class="badge">📋 Planner</span>
+    <span class="badge">🤝 Connector</span>
+    <span class="badge">⚡ Doer</span>
+    <span class="badge">🔍 Evaluator</span>
+  </div>
+</header>
+
+<div class="container">
+  <div id="survey-section">
+    <div id="question-container"></div>
+    <div class="submit-wrap">
+      <button class="submit-btn" onclick="submitSurvey()" id="submit-btn">결과 보기 →</button>
+    </div>
+  </div>
+
+  <div id="result-section">
+    <div class="result-hero">
+      <div class="tag" id="result-tag">MY TYPE</div>
+      <h2 id="result-type-name"></h2>
+      <div class="subtitle" id="result-type-subtitle"></div>
+    </div>
+
+    <div class="scores-card">
+      <h3 id="scores-title"></h3>
+      <div id="score-bars"></div>
+    </div>
+
+    <div class="reason-card">
+      <h3 id="reason-title"></h3>
+      <p id="result-reason"></p>
+    </div>
+
+    <div class="ai-card" id="ai-outlook-card">
+      <h3 id="ai-outlook-title"></h3>
+      <p id="ai-outlook-text"></p>
+    </div>
+
+    <div class="evolution-card" id="evolution-card" style="display:none;">
+      <h3 id="evolution-title"></h3>
+      <div id="evolution-list"></div>
+    </div>
+
+    <button class="retry-btn" onclick="retakeSurvey()" id="retry-btn"></button>
+  </div>
+</div>
+
+<script>
+  // ─── Language state ───────────────────────────────────────────
+  let lang = 'ko';
+  let lastScores = null;
+  let lastTopType = null;
+
+  // ─── UI strings ───────────────────────────────────────────────
+  const ui = {
+    ko: {
+      headerTitle: '🧭 나는 어떤 비즈니스 유형인가?',
+      headerDesc: 'AI 시대, 비즈니스 프로세스에서 당신이 가장 빛나는 역할을 찾아드립니다.',
+      submitBtn: '결과 보기 →',
+      retryBtn: '↩ 다시 하기',
+      resultTag: 'MY TYPE',
+      scoresTitle: '📊 유형별 점수',
+      reasonTitle: '💬 당신이 이 유형인 이유',
+      evoTitle: '🛠 AI 시대 생존을 위한 연습 추천',
+      scaleMin: '전혀 아니다',
+      scaleMax: '매우 그렇다',
+      unansweredAlert: null,
+      aiLabels: {
+        safe: '🟢 AI 시대 전망 — 프리미엄 유형',
+        risk: '🔴 AI 시대 전망 — 진화가 필요한 유형',
+        mid:  '🟡 AI 시대 전망 — 분기점의 유형',
+      }
+    },
+    en: {
+      headerTitle: '🧭 What\'s Your Business Type?',
+      headerDesc: 'Discover which role you\'re built for in the AI era of business.',
+      submitBtn: 'See My Result →',
+      retryBtn: '↩ Retake Survey',
+      resultTag: 'MY TYPE',
+      scoresTitle: '📊 Scores by Type',
+      reasonTitle: '💬 Why You\'re This Type',
+      evoTitle: '🛠 Recommended Practices to Evolve',
+      scaleMin: 'Strongly Disagree',
+      scaleMax: 'Strongly Agree',
+      unansweredAlert: null,
+      aiLabels: {
+        safe: '🟢 AI Era Outlook — Premium Type',
+        risk: '🔴 AI Era Outlook — Needs to Evolve',
+        mid:  '🟡 AI Era Outlook — At a Crossroads',
+      }
+    }
+  };
+
+  // ─── Questions ────────────────────────────────────────────────
+  const questions = {
+    ko: [
+      { type: 'visionary', text: '아직 존재하지 않는 것을 상상하고, 그것을 현실로 만드는 과정에서 에너지가 생긴다.' },
+      { type: 'visionary', text: '현재 상황의 문제보다 미래의 가능성과 기회에 더 자주 집중하는 편이다.' },
+      { type: 'visionary', text: '주변에서 "비현실적이다"라고 할 때도, 내 아이디어의 가치를 논리적으로 설명하고 설득할 수 있다.' },
+      { type: 'planner',   text: '일을 시작하기 전 단계별 계획을 세우는 것이 자연스럽고, 계획 없이 시작하면 불안하다.' },
+      { type: 'planner',   text: '목표를 달성하기 위해 구체적인 로드맵, 일정, 우선순위를 만드는 것을 즐긴다.' },
+      { type: 'planner',   text: '시간, 예산, 인력 등 리소스를 효율적으로 배분하고 최적화하는 데 강점이 있다.' },
+      { type: 'connector', text: '새로운 사람을 만나고 관계를 형성하는 것이 자연스럽고, 그 과정에서 즐거움을 느낀다.' },
+      { type: 'connector', text: '서로 다른 사람들 사이의 시너지를 발견하고, 그들을 연결해주는 역할을 자주 맡는다.' },
+      { type: 'connector', text: '협상이나 설득을 통해 원하는 결과를 이끌어내는 편이며, 상대방의 입장을 잘 파악한다.' },
+      { type: 'doer',      text: '완벽한 계획보다 일단 실행하면서 배우고 수정하는 방식이 더 잘 맞는다.' },
+      { type: 'doer',      text: '맡은 일은 어떤 상황에서도 끝까지 완수하려는 강한 실행력과 책임감을 갖고 있다.' },
+      { type: 'doer',      text: '복잡하거나 불확실한 상황에서도 빠르게 판단하고 구체적인 행동으로 옮기는 편이다.' },
+      { type: 'evaluator', text: '결과를 데이터와 수치로 측정하고 분석하는 것이 자연스럽고, 근거 없는 주장은 불편하다.' },
+      { type: 'evaluator', text: '진행 중인 프로젝트의 문제점을 남들보다 빨리 파악하고, 개선점을 제시하는 역할을 자주 맡는다.' },
+      { type: 'evaluator', text: '중요한 의사결정 전에는 충분한 검토와 분석을 거치는 것이 필수라고 생각한다.' },
+    ],
+    en: [
+      { type: 'visionary', text: 'I get energized by imagining things that don\'t exist yet and working to make them real.' },
+      { type: 'visionary', text: 'I tend to focus more on future possibilities and opportunities than on present-day problems.' },
+      { type: 'visionary', text: 'Even when others call my ideas "unrealistic," I can logically explain and defend their value.' },
+      { type: 'planner',   text: 'It feels natural to map out step-by-step plans before starting, and I feel uneasy without one.' },
+      { type: 'planner',   text: 'I enjoy building detailed roadmaps, timelines, and prioritized task lists to reach a goal.' },
+      { type: 'planner',   text: 'I have a strong ability to allocate and optimize resources — time, budget, and people.' },
+      { type: 'connector', text: 'Meeting new people and forming relationships feels natural and genuinely enjoyable to me.' },
+      { type: 'connector', text: 'I often spot the synergy between different people and take on the role of connecting them.' },
+      { type: 'connector', text: 'I\'m good at negotiating and persuading, and I naturally pick up on the other party\'s perspective.' },
+      { type: 'doer',      text: 'I prefer to jump in and learn by doing rather than waiting for a perfect plan.' },
+      { type: 'doer',      text: 'Once I take on a task, I push through to completion no matter the circumstances.' },
+      { type: 'doer',      text: 'Even in complex or uncertain situations, I make quick calls and move into action.' },
+      { type: 'evaluator', text: 'Measuring results with data and numbers feels natural — I\'m uncomfortable with unsupported claims.' },
+      { type: 'evaluator', text: 'I tend to spot problems in ongoing projects faster than others and naturally propose improvements.' },
+      { type: 'evaluator', text: 'I believe thorough review and analysis before major decisions is absolutely necessary.' },
+    ]
+  };
+
+  // ─── Type info ────────────────────────────────────────────────
+  const typeInfo = {
+    visionary: {
+      ko: {
+        name: '✨ Visionary',
+        subtitle: '비전을 꿈꾸고, 논리로 설득하는 사람',
+        reason: '당신은 아직 존재하지 않는 것을 그려내고, 그것이 왜 가능한지 설명할 수 있는 사람입니다. 현재보다 미래에 집중하며, 불확실한 상황에서도 방향을 제시하는 역할을 자연스럽게 맡습니다. 비즈니스에서 "왜 이걸 해야 하는가"의 답을 가장 잘 만들어내는 유형이에요.',
+        aiSafe: true,
+        aiText: 'AI 시대에 가장 프리미엄이 붙는 유형입니다. AI는 패턴을 학습하지만, 없던 방향을 제시하는 것은 여전히 인간 고유 영역에 가깝습니다. 단, "아이디어만 많은 Visionary"는 AI가 아이디어를 무한 생성하는 시대에 도태될 수 있으므로, 실행력 있는 팀과의 협업이 더욱 중요해집니다.',
+        evolution: null
+      },
+      en: {
+        name: '✨ Visionary',
+        subtitle: 'The one who dreams big and argues why it\'s possible',
+        reason: 'You can picture things that don\'t exist yet and articulate why they\'re achievable. You naturally gravitate toward the future over the present, and you step up to set direction even in ambiguous situations. You\'re the type who best answers the question, "Why should we do this?"',
+        aiSafe: true,
+        aiText: 'This is the type that becomes more valuable in the AI era. AI learns from patterns, but charting entirely new directions remains close to a uniquely human domain. That said, a Visionary who only generates ideas — without the ability to execute or collaborate — risks irrelevance in a world where AI produces infinite ideas on demand.',
+        evolution: null
+      }
+    },
+    planner: {
+      ko: {
+        name: '📋 Planner',
+        subtitle: '구조와 계획으로 가능성을 현실로 만드는 사람',
+        reason: '당신은 아이디어를 실행 가능한 구조로 바꾸는 데 강점이 있습니다. 로드맵 작성, 우선순위 설정, 리소스 배분이 자연스럽게 됩니다. 팀이 "어디로, 어떻게"를 알 수 있도록 만드는 역할을 합니다.',
+        aiSafe: false,
+        aiText: 'AI 대체 위험이 가장 높은 유형 중 하나입니다. 로드맵 작성, 일정 수립, 시나리오 플래닝은 이미 AI가 빠르고 정확하게 수행할 수 있습니다. Planner로서 경쟁력을 유지하려면, AI가 만든 계획을 검토하고 조율하는 "메타 플래너"로 역할을 진화시키는 것이 중요합니다.',
+        evolution: [
+          { icon: '🤖', title: 'AI 플래닝 도구를 직접 다뤄보기', desc: 'ChatGPT, Notion AI, Copilot 등으로 로드맵 초안을 생성한 뒤, 무엇이 빠졌는지 비판적으로 검토하는 연습을 하세요. AI 초안을 "출발점"으로 쓰는 습관이 생산성을 3배 이상 올립니다.' },
+          { icon: '🧠', title: '"왜 이 계획인가" 맥락 설명 능력 키우기', desc: 'AI는 계획을 만들 수 있지만, 그 계획이 왜 지금, 이 팀에, 이 상황에 맞는지를 설명하는 것은 인간의 영역입니다. 계획을 세울 때 항상 "이 계획을 선택한 이유 3가지"를 글로 정리하는 루틴을 만드세요.' },
+          { icon: '🔄', title: '애자일 마인드셋 훈련', desc: '완벽한 계획보다 빠른 수정이 더 중요한 시대입니다. 2주 단위 스프린트 방식으로 일하며, 계획 대비 실제 결과를 비교하고 빠르게 조정하는 사이클을 반복해보세요.' },
+          { icon: '🎯', title: 'AI 거버넌스 역할로 확장하기', desc: '조직에서 "AI가 만든 계획을 검토하고 승인하는 사람"이 되는 것이 Planner의 미래 포지션입니다. AI 출력물의 편향, 누락, 리스크를 잡아내는 감수 능력을 의도적으로 훈련하세요.' }
+        ]
+      },
+      en: {
+        name: '📋 Planner',
+        subtitle: 'The one who turns possibilities into structured reality',
+        reason: 'You excel at converting ideas into actionable structures. Roadmapping, prioritization, and resource allocation come naturally to you. You\'re the person who ensures the team knows where they\'re going and how to get there.',
+        aiSafe: false,
+        aiText: 'Planners face some of the highest AI replacement risk. Roadmaps, schedules, and scenario planning are already areas where AI performs quickly and accurately. To stay competitive, the key is to evolve into a "meta-planner" — someone who reviews, critiques, and contextualizes what AI produces, rather than building from scratch.',
+        evolution: [
+          { icon: '🤖', title: 'Get hands-on with AI planning tools', desc: 'Use ChatGPT, Notion AI, or Copilot to generate a draft roadmap — then practice critically reviewing what\'s missing or wrong. Treating AI output as a starting point (not the final word) can multiply your productivity 3x.' },
+          { icon: '🧠', title: 'Build the ability to explain "why this plan"', desc: 'AI can create a plan, but explaining why that plan fits this team, this moment, and this context is a human skill. Make it a habit to write down three reasons behind every plan you create or approve.' },
+          { icon: '🔄', title: 'Train an agile mindset', desc: 'Speed of iteration matters more than plan perfection now. Practice working in 2-week sprints, comparing planned vs. actual, and adjusting quickly. Adaptability is the Planner\'s new superpower.' },
+          { icon: '🎯', title: 'Expand into AI governance', desc: 'The future Planner role is becoming "the person who reviews and approves AI-generated plans." Deliberately train your ability to spot bias, gaps, and risk in AI outputs — that\'s your moat.' }
+        ]
+      }
+    },
+    connector: {
+      ko: {
+        name: '🤝 Connector',
+        subtitle: '사람과 기회를 연결하여 가치를 만드는 사람',
+        reason: '당신은 사람과 사람 사이의 시너지를 직관적으로 발견하고, 그 연결을 실현시키는 능력을 가지고 있습니다. 신뢰를 쌓고, 설득하고, 협상하는 것이 자연스럽습니다. 비즈니스에서 실행 가능한 조건을 만들어내는 핵심 역할입니다.',
+        aiSafe: true,
+        aiText: 'AI 시대에 대체 가능성이 가장 낮은 유형입니다. 신뢰, 관계, 감정적 연결은 AI가 흉내 낼 수 있어도 진짜 대체는 어렵습니다. 오히려 AI 도구를 활용해 더 많은 사람을 연결하고, 더 빠르게 관계를 구축할 수 있는 "슈퍼 커넥터"로 진화할 가능성이 높습니다.',
+        evolution: null
+      },
+      en: {
+        name: '🤝 Connector',
+        subtitle: 'The one who creates value by linking people and opportunities',
+        reason: 'You intuitively spot synergies between people and have the ability to make those connections happen. Building trust, persuading, and negotiating feel natural to you. You\'re the one who creates the conditions that make execution possible.',
+        aiSafe: true,
+        aiText: 'Connectors have the lowest AI replacement risk of any type. Trust, relationships, and emotional connection are things AI can mimic, but not truly replicate. If anything, the AI era raises the premium on human connection — and gives Connectors powerful tools to reach and bond with more people faster, becoming "super-connectors."',
+        evolution: null
+      }
+    },
+    doer: {
+      ko: {
+        name: '⚡ Doer',
+        subtitle: '생각보다 실행, 결과로 증명하는 사람',
+        reason: '당신은 행동으로 배우고, 끝까지 완수하는 실행력을 가진 사람입니다. 불확실한 상황에서도 결정하고 움직이며, 팀에서 실질적인 결과물을 만들어내는 역할을 합니다. 아이디어를 현실로 끌어내리는 마지막 다리입니다.',
+        aiSafe: null,
+        aiText: '반복적이고 프로세스화된 실행은 자동화되고 있지만, 현장 판단과 복잡한 실행은 여전히 인간 영역입니다. "AI를 잘 쓰는 Doer"와 "못 쓰는 Doer"의 격차가 극단적으로 벌어지는 유형입니다. AI 도구를 적극적으로 활용해 실행 속도와 범위를 확장하는 것이 핵심 생존 전략입니다.',
+        evolution: [
+          { icon: '⚙️', title: 'AI 자동화 도구 직접 써보기', desc: 'Zapier, Make(구 Integromat), n8n 같은 노코드 자동화 툴로 반복 업무를 연결해보세요. "내가 직접 하던 것"을 자동화하고, 확보된 시간을 판단이 필요한 실행에 쓰는 것이 목표입니다.' },
+          { icon: '🧪', title: '빠른 프로토타이핑 연습', desc: 'AI 코딩 도구(Cursor, v0, Claude 등)를 활용해 아이디어를 하루 안에 작동하는 프로토타입으로 만드는 연습을 해보세요. Doer의 실행력에 AI 속도가 더해지면 가장 강력한 조합이 됩니다.' },
+          { icon: '🗺️', title: '자동화 가능 vs 불가능 구분하기', desc: '매주 자신의 업무 목록을 보며 "이 중 AI나 자동화로 대체 가능한 것은?"을 체크하는 습관을 만드세요. 이 감각을 키우는 것 자체가 Doer의 핵심 경쟁력이 됩니다.' }
+        ]
+      },
+      en: {
+        name: '⚡ Doer',
+        subtitle: 'The one who proves it through action and results',
+        reason: 'You learn by doing and have the drive to see things through to completion. Even in uncertain situations, you make decisions and keep moving. You\'re the bridge that pulls ideas down from the air and turns them into real outcomes.',
+        aiSafe: null,
+        aiText: 'Repetitive, process-driven execution is increasingly automated — but on-the-ground judgment and complex execution remain human territory. The gap between a Doer who uses AI well and one who doesn\'t will be extreme. Leveraging AI tools to expand both the speed and scope of your execution is the core survival strategy.',
+        evolution: [
+          { icon: '⚙️', title: 'Get hands-on with AI automation tools', desc: 'Try no-code automation tools like Zapier, Make, or n8n to chain together repetitive tasks. The goal: automate what you used to do manually, then redirect that time toward execution that requires real judgment.' },
+          { icon: '🧪', title: 'Practice rapid prototyping', desc: 'Use AI coding tools (Cursor, v0, Claude, etc.) to turn an idea into a working prototype within a day. A Doer\'s execution drive combined with AI speed is one of the most powerful combinations possible.' },
+          { icon: '🗺️', title: 'Train yourself to distinguish what can vs. can\'t be automated', desc: 'Each week, review your task list and ask: "Which of these could AI or automation handle?" Building this instinct is itself a key competitive advantage for Doers going forward.' }
+        ]
+      }
+    },
+    evaluator: {
+      ko: {
+        name: '🔍 Evaluator',
+        subtitle: '데이터와 논리로 방향을 검증하는 사람',
+        reason: '당신은 결과를 수치로 측정하고, 문제를 남들보다 빠르게 파악하는 분석적 사고를 가진 사람입니다. 의사결정 전 충분한 검토를 거치며, 팀이 잘못된 방향으로 가지 않도록 지키는 역할을 합니다.',
+        aiSafe: false,
+        aiText: 'AI 대체 위험이 높은 유형입니다. 데이터 분석, 성과 측정, 피드백 생성은 AI가 인간보다 빠르고 정확하게 수행할 수 있습니다. 단, 판단의 맥락과 책임이 필요한 고위급 의사결정은 여전히 인간 영역입니다. "AI 분석 결과를 해석하고 책임지는 사람"으로 역할을 재정의하는 것이 중요합니다.',
+        evolution: [
+          { icon: '📊', title: 'AI 분석 결과 감수 능력 키우기', desc: 'ChatGPT나 Claude에게 데이터 분석을 시킨 뒤, 그 결과에서 오류·편향·누락을 찾아내는 연습을 하세요. "AI가 틀린 부분을 잡아내는 사람"이 되는 것이 Evaluator의 핵심 진화 방향입니다.' },
+          { icon: '⚖️', title: '맥락 기반 의사결정 훈련', desc: 'AI는 숫자를 읽지만, 조직의 문화, 팀의 상황, 타이밍 같은 맥락은 읽지 못합니다. 동일한 데이터를 두고 "이 맥락에서는 어떤 판단이 맞는가"를 토론하거나 글로 정리하는 연습을 꾸준히 하세요.' },
+          { icon: '🔬', title: 'AI 한계와 오류 패턴 학습하기', desc: 'Hallucination(환각), 데이터 편향, 상관관계와 인과관계 혼동 등 AI가 자주 범하는 오류 유형을 공부하세요. 이 지식이 곧 Evaluator의 차별화된 전문성이 됩니다.' },
+          { icon: '🏛️', title: 'AI 윤리와 거버넌스로 역할 확장', desc: '조직 내에서 AI 사용 기준을 만들고, 결과물의 책임 소재를 설계하는 역할은 아직 인간의 영역입니다. AI 윤리, 데이터 거버넌스 관련 학습으로 Evaluator의 활동 반경을 넓혀보세요.' }
+        ]
+      },
+      en: {
+        name: '🔍 Evaluator',
+        subtitle: 'The one who validates direction with data and logic',
+        reason: 'You think analytically, measure outcomes in numbers, and spot problems faster than most. You insist on thorough review before decisions are made — and you\'re the guardrail that keeps the team from heading in the wrong direction.',
+        aiSafe: false,
+        aiText: 'Evaluators face high AI replacement risk. Data analysis, performance measurement, and feedback generation are areas where AI is already faster and more accurate than humans. That said, high-stakes decisions requiring contextual judgment and accountability remain human terrain. The key shift is redefining your role as "the person who interprets and takes responsibility for AI-generated analysis."',
+        evolution: [
+          { icon: '📊', title: 'Train your ability to audit AI analysis', desc: 'Have ChatGPT or Claude analyze a dataset — then practice finding the errors, biases, and omissions in its output. Becoming the person who catches what AI gets wrong is the Evaluator\'s core competitive edge going forward.' },
+          { icon: '⚖️', title: 'Practice context-based decision making', desc: 'AI reads numbers, but it can\'t read organizational culture, team dynamics, or timing. Practice regularly: take the same data and ask, "What\'s the right call given this specific context?" Write it out or debate it.' },
+          { icon: '🔬', title: 'Study AI failure patterns', desc: 'Learn the common ways AI goes wrong: hallucination, data bias, confusing correlation with causation. This knowledge becomes your specialized expertise — and it\'s something AI can\'t teach about itself.' },
+          { icon: '🏛️', title: 'Expand into AI ethics and governance', desc: 'Setting AI usage standards and designing accountability structures within organizations is still very much a human role. Exploring AI ethics and data governance is a natural way to broaden the Evaluator\'s domain.' }
+        ]
+      }
+    }
+  };
+
+  // ─── Helpers ──────────────────────────────────────────────────
+  const typeOrder  = ['visionary', 'planner', 'connector', 'doer', 'evaluator'];
+  const typeColors = { visionary: 'color-visionary', planner: 'color-planner', connector: 'color-connector', doer: 'color-doer', evaluator: 'color-evaluator' };
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // ─── Render questions ─────────────────────────────────────────
+  function renderQuestions() {
+    const shuffled = shuffle(questions[lang]);
+    const t = ui[lang];
+    const container = document.getElementById('question-container');
+    container.innerHTML = shuffled.map((q, i) => `
+      <div class="question-card" data-type="${q.type}">
+        <div class="q-header">
+          <div class="q-num">${i + 1}</div>
+          <div class="q-text">${q.text}</div>
+        </div>
+        <div class="scale-row">
+          <button class="scale-btn" data-val="1">1</button>
+          <button class="scale-btn" data-val="2">2</button>
+          <button class="scale-btn" data-val="3">3</button>
+          <button class="scale-btn" data-val="4">4</button>
+          <button class="scale-btn" data-val="5">5</button>
+        </div>
+        <div class="scale-labels"><span>${t.scaleMin}</span><span>${t.scaleMax}</span></div>
+      </div>`).join('');
+    bindScaleButtons();
+  }
+
+  function bindScaleButtons() {
+    document.querySelectorAll('.scale-row').forEach(row => {
+      row.querySelectorAll('.scale-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          row.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          btn.closest('.question-card').classList.remove('unanswered');
+        });
+      });
+    });
+  }
+
+  // ─── Render result ────────────────────────────────────────────
+  function renderResult(scores, topType) {
+    const t  = ui[lang];
+    const info = typeInfo[topType][lang];
+
+    document.getElementById('result-tag').textContent         = t.resultTag;
+    document.getElementById('result-type-name').textContent   = info.name;
+    document.getElementById('result-type-subtitle').textContent = info.subtitle;
+    document.getElementById('scores-title').textContent       = t.scoresTitle;
+    document.getElementById('reason-title').textContent       = t.reasonTitle;
+    document.getElementById('result-reason').textContent      = info.reason;
+    document.getElementById('retry-btn').textContent          = t.retryBtn;
+    document.getElementById('evolution-title').textContent    = t.evoTitle;
+
+    // Score bars
+    document.getElementById('score-bars').innerHTML = typeOrder.map(tp => {
+      const pct = Math.round((scores[tp] / 15) * 100);
+      return `<div class="score-row">
+        <div class="score-label">${typeInfo[tp][lang].name.replace(/^[^\s]+\s/, '')}</div>
+        <div class="score-bar-bg"><div class="score-bar-fill ${typeColors[tp]}" style="width:${pct}%"></div></div>
+        <div class="score-val">${scores[tp]}/15</div>
+      </div>`;
+    }).join('');
+
+    // AI outlook
+    const aiCard = document.getElementById('ai-outlook-card');
+    if (info.aiSafe === true) {
+      aiCard.className = 'ai-card ai-safe';
+      document.getElementById('ai-outlook-title').textContent = t.aiLabels.safe;
+    } else if (info.aiSafe === false) {
+      aiCard.className = 'ai-card ai-risk';
+      document.getElementById('ai-outlook-title').textContent = t.aiLabels.risk;
+    } else {
+      aiCard.className = 'ai-card ai-mid';
+      document.getElementById('ai-outlook-title').textContent = t.aiLabels.mid;
+    }
+    document.getElementById('ai-outlook-text').textContent = info.aiText;
+
+    // Evolution
+    const evoCard = document.getElementById('evolution-card');
+    const evoList = document.getElementById('evolution-list');
+    if (info.evolution) {
+      evoList.innerHTML = info.evolution.map(p => `
+        <div class="practice-item">
+          <div class="practice-icon">${p.icon}</div>
+          <div class="practice-body">
+            <div class="practice-title">${p.title}</div>
+            <div class="practice-desc">${p.desc}</div>
+          </div>
+        </div>`).join('');
+      evoCard.style.display = 'block';
+    } else {
+      evoCard.style.display = 'none';
+    }
+  }
+
+  // ─── Submit ───────────────────────────────────────────────────
+  function submitSurvey() {
+    const cards = document.querySelectorAll('.question-card');
+    let allAnswered = true;
+    cards.forEach(card => {
+      if (!card.querySelector('.scale-btn.selected')) {
+        card.classList.add('unanswered');
+        allAnswered = false;
+      }
+    });
+    if (!allAnswered) {
+      document.querySelector('.question-card.unanswered').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    const scores = { visionary: 0, planner: 0, connector: 0, doer: 0, evaluator: 0 };
+    cards.forEach(card => {
+      scores[card.dataset.type] += parseInt(card.querySelector('.scale-btn.selected').dataset.val);
+    });
+
+    let topType = typeOrder[0];
+    typeOrder.forEach(t => { if (scores[t] > scores[topType]) topType = t; });
+
+    lastScores  = scores;
+    lastTopType = topType;
+
+    renderResult(scores, topType);
+
+    document.getElementById('survey-section').style.display = 'none';
+    document.getElementById('result-section').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ─── Retake ───────────────────────────────────────────────────
+  function retakeSurvey() {
+    lastScores  = null;
+    lastTopType = null;
+    renderQuestions();
+    document.getElementById('survey-section').style.display = 'block';
+    document.getElementById('result-section').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ─── Language switch ──────────────────────────────────────────
+  function setLang(l) {
+    lang = l;
+    document.getElementById('btn-ko').classList.toggle('active', l === 'ko');
+    document.getElementById('btn-en').classList.toggle('active', l === 'en');
+    document.documentElement.lang = l;
+
+    const t = ui[l];
+    document.getElementById('header-title').textContent = t.headerTitle;
+    document.getElementById('header-desc').textContent  = t.headerDesc;
+    document.getElementById('submit-btn').textContent   = t.submitBtn;
+
+    const resultVisible = document.getElementById('result-section').style.display !== 'none';
+    if (resultVisible && lastScores && lastTopType) {
+      renderResult(lastScores, lastTopType);
+    } else {
+      renderQuestions();
+    }
+  }
+
+  // ─── Init ─────────────────────────────────────────────────────
+  renderQuestions();
+</script>
+</body>
+</html>
